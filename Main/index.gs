@@ -9,12 +9,12 @@
  */
 function PostToSlack() {
   const symbols = SlackSymbols.load();
-  const lf = symbols.linefeed;  
+  const lf = symbols.linefeed;
   let message = `おはよう！今日の天気だよ。${lf}${lf}`;
-  message += generateMessage();
+  message += generateMessage_();
   
-  const props = new Props(); 
-  const slack = SlackApp.load(props.apiToken, props.channelId_test);
+  const props = new Props();
+  const slack = SlackApp.load(props.apiToken, props.channelId);
   slack.post(message);
 }
 
@@ -23,7 +23,7 @@ function PostToSlack() {
  * 
  * @return {string} - 生成した天気予報文
  */
-function generateMessage() {
+function generateMessage_() {
   const tsuchiura = '080020';
   const forecast = new Forecast(tsuchiura);
 
@@ -51,7 +51,7 @@ function generateMessage() {
 
   m += lf;
   m += `${codeBlock}`;
-  m += `${splitDescription(forecast.description)}${lf}`
+  m += `${splitDescription_(forecast.description)}${lf}`
   m += `${codeBlock}`;
 
   m += lf;
@@ -75,7 +75,7 @@ function generateMessage() {
  * 
  * @return {string} - 整形後の文字列
  */
-const splitDescription = (str) => {
+const splitDescription_ = (str) => {
   let m = str.split('　').join('');
   m = m.replace(/\n\n/g, '\n');
 
