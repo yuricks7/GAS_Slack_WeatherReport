@@ -1,18 +1,11 @@
 /**
  * livedoor天気のWebAPIを活用して、Slackに天気予報を送信する
  * →「2020年7月31日（金）14:00」にAPI停止につき、このスクリプトも更新停止。
+ * →「2026年3月7日（土）」、代替APIを発見したので、こちらに変更
  *
  * 【参考】
- * - APIの区分
- *   - livedoor天気
- *     http://weather.livedoor.com/forecast/rss/primary_area.xml
- *   
- *   - 仙台市青葉区の天気
- *     http://weather.livedoor.com/area/forecast/960034101
- *   
- * - 参照
- *   【初心者向けGAS】天気予報APIからのJSONをオブジェクトに変換する方法
- *   https://tonari-it.com/gas-weather-api-json-parse/
+ *   - 天気予報 API（livedoor 天気互換）
+ *     https://weather.tsukumijima.net/
  */
 function PostToSlack() {
   const symbols = SlackSymbols.load();
