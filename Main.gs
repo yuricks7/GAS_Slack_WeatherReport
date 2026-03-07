@@ -1,14 +1,19 @@
-/*
-  APIの区分
-  http://weather.livedoor.com/forecast/rss/primary_area.xml
-  
-  仙台市青葉区の天気
-  http://weather.livedoor.com/area/forecast/960034101
-  
-  参照
-  https://tonari-it.com/gas-weather-api-json-parse/
-*/
-
+/**
+ * livedoor天気のWebAPIを活用して、Slackに天気予報を送信する
+ * →「2020年7月31日（金）14:00」にAPI停止につき、このスクリプトも更新停止。
+ *
+ * 【参考】
+ * - APIの区分
+ *   - livedoor天気
+ *     http://weather.livedoor.com/forecast/rss/primary_area.xml
+ *   
+ *   - 仙台市青葉区の天気
+ *     http://weather.livedoor.com/area/forecast/960034101
+ *   
+ * - 参照
+ *   【初心者向けGAS】天気予報APIからのJSONをオブジェクトに変換する方法
+ *   https://tonari-it.com/gas-weather-api-json-parse/
+ */
 function SendWeatherForcast() {
   MySlack = new Slack('10_天気予報', '天記予保子');
   
@@ -21,6 +26,9 @@ function SendWeatherForcast() {
   MySlack.post(message);
 }
 
+/**
+ * 天気予報を作成
+ */
 function getWeatherForcast() {
   const SENDAI_ID = '040010';
   var sendaiWeather = new Weather(SENDAI_ID);
@@ -75,7 +83,10 @@ function getWeatherForcast() {
   return ret;
 }
 
-// いい感じに分割できない…
+/**
+ * コメント文を作成する
+ * （いい感じに分割できない…）
+ */
 var splitComments = function(string) {
   var arr = string.split('\n');
 
