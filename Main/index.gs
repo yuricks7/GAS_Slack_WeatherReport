@@ -1,0 +1,90 @@
+/**
+ * livedoor天気のWebAPIを活用して、Slackに天気予報を送信する
+ * →「2020年7月31日（金）14:00」にAPI停止につき、このスクリプトも更新停止。
+ *
+ * 【参考】
+ * - APIの区分
+ *   - livedoor天気
+ *     http://weather.livedoor.com/forecast/rss/primary_area.xml
+ *   
+ *   - 仙台市青葉区の天気
+ *     http://weather.livedoor.com/area/forecast/960034101
+ *   
+ * - 参照
+ *   【初心者向けGAS】天気予報APIからのJSONをオブジェクトに変換する方法
+ *   https://tonari-it.com/gas-weather-api-json-parse/
+ */
+function PostToSlack() {
+  const symbols = SlackSymbols.load();
+  const lf = symbols.linefeed;  
+  let message = `おはよう！今日の天気だよ。${lf}${lf}`;
+  message += generateMessage();
+  
+  const props = new Props(); 
+  const slack = SlackApp.load(props.apiToken, props.channelId_test);
+  slack.post(message);
+}
+
+/**
+ * 天気予報を作成
+ * 
+ * @return {string} - 生成した天気予報文
+ */
+function generateMessage() {
+  const tsuchiura = '080020';
+  const forecast = new Forecast(tsuchiura);
+
+  const symbols = SlackSymbols.load();
+  const lf         = symbols.linefeed;
+  const bold       = symbols.bold;
+  const quate      = symbols.quote;
+  const codeBlock  = symbols.codeBlock;
+  const blockQuate = symbols.blockQuote;
+  
+  let m = '';
+  m += `${bold}${forecast.title}${bold}${lf}`;  
+  m += `${bold}▼${forecast.today.date}${bold}${lf}`;  
+  m += `${forecast.today.icon}${lf}`;
+  m += `${quate}${forecast.today.forecast}${lf}`;
+  m += `${quate}最低気温： ${forecast.today.temp.min} ℃${lf}`;
+  m += `${quate}最高気温： ${forecast.today.temp.max} ℃${lf}`;
+  m += lf;
+  
+  m += `${bold}▼${forecast.tommorow.date}${bold}${lf}`;
+  m += `${forecast.tommorow.icon}${lf}`;
+  m += `${quate}${forecast.tommorow.forecast}${lf}`;
+  m += `${quate}最低気温：${forecast.tommorow.temp.min} ℃${lf}`;
+  m += `${quate}最高気温：${forecast.tommorow.temp.max} ℃${lf}`;
+
+  m += lf;
+  m += `${codeBlock}`;
+  m += `${splitDescription(forecast.description)}${lf}`
+  m += `${codeBlock}`;
+
+  m += lf;
+  m += `${blockQuate}${lf}`;
+  m += `公開: ${forecast.dataTime}${lf}`;
+  m += `Source: ${forecast.url}${lf}`;
+  m += `発表: ${forecast.privider}${lf}`;
+  m += `HP: ${forecast.prividerUrl}${lf}`;
+
+  return m;
+}
+
+/**
+ * 概要文を整形する
+ *
+ * 【参考】
+ * - 特定の文字列を全て置換する[Javascript] #JavaScript - Qiita
+ *   https://qiita.com/DecoratedKnight/items/103ab57431b6c448e535
+ * 
+ * @param {string} str - 整形前の文字列
+ * 
+ * @return {string} - 整形後の文字列
+ */
+const splitDescription = (str) => {
+  let m = str.split('　').join('');
+  m = m.replace(/\n\n/g, '\n');
+
+  return m;
+}

@@ -1,15 +1,31 @@
 {
   "timeZone": "Asia/Tokyo",
+  "exceptionLogging": "STACKDRIVER",
   "dependencies": {
-    "libraries": [{
-      "userSymbol": "SlackApp",
-      "libraryId": "1on93YOYfSmV92R5q59NpKmsyWIQD8qnoLYk-gkQBI92C58SPyA2x1-bq",
-      "version": "22"
-    }]
+    "libraries": [
+      {
+        "userSymbol": "SlackApp",
+        "version": "0",
+        "libraryId": "1-_bu4FmmALxQl5YQF0Hk0fkbLG0lkZur7wDUgWJMHfpZMOC7N-rr7jC7",
+        "developmentMode": true
+      },
+      {
+        "userSymbol": "RestApiHelper",
+        "version": "0",
+        "libraryId": "1_TDv0sV9l82h85UPEQ5JQZNSUyRGGyBX3J5LWQl7PL7pSfvkfdIPgDHa",
+        "developmentMode": true
+      },
+      {
+        "userSymbol": "SlackSymbols",
+        "version": "0",
+        "libraryId": "1o_MvHyK4ZrAJdbNWbwuYODBAmGW9bv9SMENco7uN2jbNiM5y1rhfEcUi",
+        "developmentMode": true
+      }
+    ]
   },
   "webapp": {
-    "access": "ANYONE",
-    "executeAs": "USER_DEPLOYING"
+    "executeAs": "USER_DEPLOYING",
+    "access": "ANYONE"
   },
-  "exceptionLogging": "STACKDRIVER"
+  "runtimeVersion": "V8"
 }
