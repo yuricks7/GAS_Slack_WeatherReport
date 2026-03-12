@@ -10,7 +10,7 @@
 function PostToSlack() {
   const symbols = SlackSymbols.load();
   const lf = symbols.linefeed;
-  let message = `おはよう！今日の天気だよ。${lf}${lf}`;
+  let message = `< おはよう！今日の天気だよ。${lf}${lf}`;
   message += generateMessage_();
   
   const props = new Props();
@@ -36,6 +36,8 @@ function generateMessage_() {
   
   let m = '';
   m += `${bold}${forecast.title}${bold}${lf}`;  
+  m += lf;
+
   m += `${bold}▼${forecast.today.date}${bold}${lf}`;  
   m += `${forecast.today.icon}${lf}`;
   m += `${quate}${forecast.today.forecast}${lf}`;
@@ -48,6 +50,13 @@ function generateMessage_() {
   m += `${quate}${forecast.tommorow.forecast}${lf}`;
   m += `${quate}最低気温：${forecast.tommorow.temp.min} ℃${lf}`;
   m += `${quate}最高気温：${forecast.tommorow.temp.max} ℃${lf}`;
+  m += lf;
+
+  m += `${bold}▼${forecast.theDayAfterTomorrow.date}${bold}${lf}`;
+  m += `${forecast.theDayAfterTomorrow.icon}${lf}`;
+  m += `${quate}${forecast.theDayAfterTomorrow.forecast}${lf}`;
+  m += `${quate}最低気温：${forecast.theDayAfterTomorrow.temp.min} ℃${lf}`;
+  m += `${quate}最高気温：${forecast.theDayAfterTomorrow.temp.max} ℃${lf}`;
 
   m += lf;
   m += `${codeBlock}`;

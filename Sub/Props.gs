@@ -5,5 +5,7 @@ class Props {
     this.apiToken       = props.getProperty('SLACK_ACCESS_TOKEN');
     this.channelId      = props.getProperty('CHANNEL_ID');
     this.channelId_test = props.getProperty('CHANNEL_ID_TEST');
+
+    this.folderId = props.getProperty('FOLDER_ID_ICON');
   }
 }

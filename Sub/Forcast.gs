@@ -24,6 +24,8 @@ class Forecast {
     // 一旦まとめて格納
     const data = this.jsonParsed;
 
+console.log(data);
+
     /** 概要 */
     this.dataTime = data.publicTime;
 
@@ -36,13 +38,15 @@ class Forecast {
 
     this.title = data.title;
 
-    /** 予報 */
+    /** 説明 */
     const description = data.description;
     this.descriptionTime = description.publicTime;
     this.description     = description.text;
 
+    /** 天気 */
+    const forecasts = data.forecasts;
+
     // 今日
-    const forecasts      = data.forecasts;
     const todaysForecast = forecasts[0];
     const todaysTemp = todaysForecast.temperature;
     this.today = {
@@ -57,7 +61,7 @@ class Forecast {
 
     // 明日
     const tommorowsForecast = forecasts[1];
-    const tommorowsTemp = todaysForecast.temperature;
+    const tommorowsTemp = tommorowsForecast.temperature;
     this.tommorow = {
       date:     tommorowsForecast.date,
       forecast: this.replaceToKana(tommorowsForecast.telop),
@@ -67,7 +71,38 @@ class Forecast {
         max: this.isNull(tommorowsTemp.max).celsius
       }
     }
+
+    // 明後日（the Day After Tommorow）
+    const theDayAfterTomorrowForecast = forecasts[2];
+    const theDayAfterTomorrowTemp = theDayAfterTomorrowForecast.temperature;
+    this.theDayAfterTomorrow = {
+      date:     theDayAfterTomorrowForecast.date,
+      forecast: this.replaceToKana(theDayAfterTomorrowForecast.telop),
+      icon:     theDayAfterTomorrowForecast.image.url,
+      temp: {
+        min: this.isNull(theDayAfterTomorrowTemp.min).celsius,
+        max: this.isNull(theDayAfterTomorrowTemp.max).celsius
+      }
+    }
   }
+
+  /**
+   * SVGのURLから画像を取得
+   */
+  svgToBlob(url) {
+    // var url = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/220px-Google_2015_logo.svg.png"
+
+    var response = UrlFetchApp.fetch(url);
+
+    //Blobとして加工したいとき
+    // var resultBlon = response.getBlob();
+
+    return response.getBlob()
+
+    // //単に画像が欲しいとき
+    // var resultPng = response.getAs('image/png');    
+  }
+
 
   /**
    * 漢字を平仮名に変換する
