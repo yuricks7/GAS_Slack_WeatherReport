@@ -10,83 +10,61 @@
 function PostToSlack() {
   const symbols = SlackSymbols.load();
   const lf = symbols.linefeed;
-  let message = `< おはよう！今日の天気だよ。${lf}${lf}`;
-  message += generateMessage_();
-  
-  const props = new Props();
-  const slack = SlackApp.load(props.apiToken, props.channelId);
-  slack.post(message);
-}
-
-/**
- * 天気予報を作成
- * 
- * @return {string} - 生成した天気予報文
- */
-function generateMessage_() {
-  const tsuchiura = '080020';
-  const forecast = new Forecast(tsuchiura);
-
-  const symbols = SlackSymbols.load();
-  const lf         = symbols.linefeed;
-  const bold       = symbols.bold;
-  const quate      = symbols.quote;
+  const b  = symbols.bold;
   const codeBlock  = symbols.codeBlock;
   const blockQuate = symbols.blockQuote;
-  
+
+  const tsuchiura = '080020';
+  const forecast = new Forecast(tsuchiura);
+  const props = new Props();
+  // const slack = SlackApp.load(props.apiToken, props.channelId_test);
+  const slack = SlackApp.load(props.apiToken, props.channelId);
+
   let m = '';
-  m += `${bold}${forecast.title}${bold}${lf}`;  
-  m += lf;
+  const dateFormat = DateFormat.load();
+  m += '----------------------------------\n';
+  m += `${b}${dateFormat.ja_JP(new Date())}${b}${lf}`;
+  m += '----------------------------------\n';
+  m += `${b}${forecast.title}${b}${lf}`;
+  m += `< おはよう！今日の天気だよ。${lf}${lf}`;
+  const parentPost = slack.post(m);
 
-  m += `${bold}▼${forecast.today.date}${bold}${lf}`;  
-  m += `${forecast.today.icon}${lf}`;
-  m += `${quate}${forecast.today.forecast}${lf}`;
-  m += `${quate}最低気温： ${forecast.today.temp.min} ℃${lf}`;
-  m += `${quate}最高気温： ${forecast.today.temp.max} ℃${lf}`;
-  m += lf;
-  
-  m += `${bold}▼${forecast.tommorow.date}${bold}${lf}`;
-  m += `${forecast.tommorow.icon}${lf}`;
-  m += `${quate}${forecast.tommorow.forecast}${lf}`;
-  m += `${quate}最低気温：${forecast.tommorow.temp.min} ℃${lf}`;
-  m += `${quate}最高気温：${forecast.tommorow.temp.max} ℃${lf}`;
-  m += lf;
+  // 日ごとの天気
+  post(forecast, slack, 'today', parentPost.ts);
+  post(forecast, slack, 'tommorow', parentPost.ts);
+  post(forecast, slack, 'theDayAfterTomorrow', parentPost.ts);
 
-  m += `${bold}▼${forecast.theDayAfterTomorrow.date}${bold}${lf}`;
-  m += `${forecast.theDayAfterTomorrow.icon}${lf}`;
-  m += `${quate}${forecast.theDayAfterTomorrow.forecast}${lf}`;
-  m += `${quate}最低気温：${forecast.theDayAfterTomorrow.temp.min} ℃${lf}`;
-  m += `${quate}最高気温：${forecast.theDayAfterTomorrow.temp.max} ℃${lf}`;
-
-  m += lf;
+  // 概要文
+  m  = `${codeBlock}`;
+  m += `${forecast.description}${lf}`
   m += `${codeBlock}`;
-  m += `${splitDescription_(forecast.description)}${lf}`
-  m += `${codeBlock}`;
-
   m += lf;
+
+  // コピーライト
   m += `${blockQuate}${lf}`;
-  m += `公開: ${forecast.dataTime}${lf}`;
+  m += `公開: ${new Date(forecast.dataTime).toLocaleString('ja-JP')}${lf}`;
   m += `Source: ${forecast.url}${lf}`;
   m += `発表: ${forecast.privider}${lf}`;
   m += `HP: ${forecast.prividerUrl}${lf}`;
 
-  return m;
+  slack.post(m, parentPost.ts);
 }
 
 /**
- * 概要文を整形する
- *
- * 【参考】
- * - 特定の文字列を全て置換する[Javascript] #JavaScript - Qiita
- *   https://qiita.com/DecoratedKnight/items/103ab57431b6c448e535
+ * 天気を投稿する
  * 
- * @param {string} str - 整形前の文字列
- * 
- * @return {string} - 整形後の文字列
+ * @param {Forecast} forecast
+ * @param {SlackApp} slack
+ * @param {string}   dateStr
+ * @param {number}   timeStamp
  */
-const splitDescription_ = (str) => {
-  let m = str.split('　').join('');
-  m = m.replace(/\n\n/g, '\n');
+const post = (forecast, slack, dateStr, timeStamp) => {
+  const symbols = SlackSymbols.load();
+  const lf      = symbols.linefeed;
 
-  return m;
+  let m = '';
+  m = `${forecast.generateMessage(dateStr)}`;
+  m += lf;
+  slack.post(m, timeStamp);
+  slack.postImage(forecast[dateStr].icon.blob, forecast[dateStr].telop, timeStamp);
 }

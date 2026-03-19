@@ -24,7 +24,7 @@ class Forecast {
     // 一旦まとめて格納
     const data = this.jsonParsed;
 
-console.log(data);
+// console.log(data);
 
     /** 概要 */
     this.dataTime = data.publicTime;
@@ -41,99 +41,130 @@ console.log(data);
     /** 説明 */
     const description = data.description;
     this.descriptionTime = description.publicTime;
-    this.description     = description.text;
+    this.description     = this.splitDescription_(description.text);
 
     /** 天気 */
-    const forecasts = data.forecasts;
+    this.forecasts = data.forecasts;
 
     // 今日
-    const todaysForecast = forecasts[0];
-    const todaysTemp = todaysForecast.temperature;
-    this.today = {
-      date:     todaysForecast.date,
-      forecast: this.replaceToKana(todaysForecast.telop),
-      icon:     todaysForecast.image.url,
-      temp: {
-        min: this.isNull(todaysTemp.min).celsius,
-        max: this.isNull(todaysTemp.max).celsius
-      }
-    }
+    this.assignData('today', 0);
 
     // 明日
-    const tommorowsForecast = forecasts[1];
-    const tommorowsTemp = tommorowsForecast.temperature;
-    this.tommorow = {
-      date:     tommorowsForecast.date,
-      forecast: this.replaceToKana(tommorowsForecast.telop),
-      icon:     tommorowsForecast.image.url,
+    this.assignData('tommorow', 1);
+
+    // 明後日
+    this.assignData('theDayAfterTomorrow', 2);
+  }
+
+  assignData(dateStr, i) {
+    const forecast = this.forecasts[i];
+    const temperature = forecast.temperature;
+    this[dateStr] = {
+      date:  forecast.date,
+      telop: forecast.telop,
+      icon: {
+        url: forecast.image.url,
+        blob: '',
+      },
       temp: {
-        min: this.isNull(tommorowsTemp.min).celsius,
-        max: this.isNull(tommorowsTemp.max).celsius
+        min: temperature.min.celsius,
+        max: temperature.max.celsius
       }
     }
-
-    // 明後日（the Day After Tommorow）
-    const theDayAfterTomorrowForecast = forecasts[2];
-    const theDayAfterTomorrowTemp = theDayAfterTomorrowForecast.temperature;
-    this.theDayAfterTomorrow = {
-      date:     theDayAfterTomorrowForecast.date,
-      forecast: this.replaceToKana(theDayAfterTomorrowForecast.telop),
-      icon:     theDayAfterTomorrowForecast.image.url,
-      temp: {
-        min: this.isNull(theDayAfterTomorrowTemp.min).celsius,
-        max: this.isNull(theDayAfterTomorrowTemp.max).celsius
-      }
-    }
+    this[dateStr].icon.blob = this.getJmaPngBlob_(this[dateStr].icon.url);
   }
 
   /**
-   * SVGのURLから画像を取得
-   */
-  svgToBlob(url) {
-    // var url = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/220px-Google_2015_logo.svg.png"
-
-    var response = UrlFetchApp.fetch(url);
-
-    //Blobとして加工したいとき
-    // var resultBlon = response.getBlob();
-
-    return response.getBlob()
-
-    // //単に画像が欲しいとき
-    // var resultPng = response.getAs('image/png');    
-  }
-
-
-  /**
-   * 漢字を平仮名に変換する
+   * 天気の概要文を生成する
    * 
-   * @param {string} value - 変換前の文字列
+   * @param {string} dateStr - 相対日付を表す文字列
    * 
-   * @return {string} - 変換後の文字列
+   * @return {string} 天気の概要
    */
-  replaceToKana(value) {
-    var str = String(value);
-    if (value.indexOf('時々') != -1) {
-      str.replace('時々', 'ときどき');
-    }
+  generateMessage(dateStr) {
+    const symbols = SlackSymbols.load();
+    const lf         = symbols.linefeed;
+    const bold       = symbols.bold;
+    const quate      = symbols.quote;
 
-    return str
+    const forecast = this[dateStr];
+    let m = '';
+    m += `${bold}▼${forecast.date}${bold}${lf}`;
+    // m += `${forecast.icon.url}${lf}`;
+    m += `${quate}${forecast.telop}${lf}`;
+    m += `${quate}最低気温： ${forecast.temp.min} ℃${lf}`;
+    m += `${quate}最高気温： ${forecast.temp.max} ℃${lf}`;
+    return m;
   }
 
   /**
-   * 空欄を埋める
+   * 概要文を整形する
+   *
+   * 【参考】
+   * - 特定の文字列を全て置換する[Javascript] #JavaScript - Qiita
+   *   https://qiita.com/DecoratedKnight/items/103ab57431b6c448e535
    * 
-   * @param (string) - 変換前の文字列
+   * @param {string} str - 整形前の文字列
    * 
-   * @return {string | boolean} - nullなら置き換える
+   * @return {string} - 整形後の文字列
    */
-  isNull(value) {
-    if (value == null) {
-      if (value === 0) return value;
+  splitDescription_(str) {
+    let m = str.split('　').join('');
+    m = m.replace(/\n\n/g, '\n');
 
-      return '■■';
-    }
-
-    return value;
+    return m;
   }
+
+  /**
+   * 気象庁のSVG URLを渡すとPNG Blobを返す
+   * 
+   * @param {string} svgUrl - 元のURL
+   * 
+   * @return {Blob} SVGのURLから取得したPNG画像のBlobファイル
+   */
+  getJmaPngBlob_(svgUrl) {
+    // SVGのURLからPNGのURLを生成
+    const weatherCode = svgUrl.match(/(\d+)\.svg$/)[1]; // 画像の番号を抽出（212.svg → 212）
+    const pngUrl      = svgUrl.replace(/(\d+)\.svg$/, `${weatherCode}.png`);
+
+    // PNG を取得して Blob にする
+    const pngBlob = UrlFetchApp.fetch(pngUrl).getBlob();
+    pngBlob.setName(`${weatherCode}.png`);
+
+    return pngBlob;
+  }
+
+
+  // /**
+  //  * 漢字を平仮名に変換する
+  //  * 
+  //  * @param {string} value - 変換前の文字列
+  //  * 
+  //  * @return {string} - 変換後の文字列
+  //  */
+  // replaceToKana(value) {
+  //   var str = String(value);
+  //   if (value.indexOf('時々') != -1) {
+  //     str.replace('時々', 'ときどき');
+  //   }
+
+  //   return str
+  // }
+
+  // /**
+  //  * 空欄を埋める
+  //  * 
+  //  * @param (string) - 変換前の文字列
+  //  * 
+  //  * @return {string | boolean} - nullなら置き換える
+  //  */
+  // isNull(value) {
+  //   if (value == null) {
+  //     if (value === 0) return value;
+
+  //     return '■■';
+  //   }
+
+  //   return value;
+  // }
 }
