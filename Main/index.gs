@@ -17,8 +17,8 @@ function PostToSlack() {
   const tsuchiura = '080020';
   const forecast = new Forecast(tsuchiura);
   const props = new Props();
-  const slack = SlackApp.load(props.apiToken, props.channelId_test);
-  // const slack = SlackApp.load(props.apiToken, props.channelId);
+  // const slack = SlackApp.load(props.apiToken, props.channelId_test);
+  const slack = SlackApp.load(props.apiToken, props.channelId);
 
   let m = '';
   const dateFormat = DateFormat.load();
@@ -47,7 +47,7 @@ function PostToSlack() {
   m += `発表: ${forecast.privider}${lf}`;
   m += `HP: ${forecast.prividerUrl}${lf}`;
 
-  // slack.post(m, parentPost.ts);
+  slack.post(m, parentPost.ts);
 }
 
 /**
