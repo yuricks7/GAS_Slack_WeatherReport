@@ -17,13 +17,13 @@ function PostToSlack() {
   const tsuchiura = '080020';
   const forecast = new Forecast(tsuchiura);
   const props = new Props();
-  // const slack = SlackApp.load(props.apiToken, props.channelId_test);
-  const slack = SlackApp.load(props.apiToken, props.channelId);
+  const slack = SlackApp.load(props.apiToken, props.channelId_test);
+  // const slack = SlackApp.load(props.apiToken, props.channelId);
 
   let m = '';
   const dateFormat = DateFormat.load();
   m += '----------------------------------\n';
-  m += `${b}${dateFormat.ja_JP(new Date())}${b}${lf}`;
+  m += `${b}${dateFormat.yyyy_m_d_h_m_s(new Date())}${b}${lf}`;
   m += '----------------------------------\n';
   m += `${b}${forecast.title}${b}${lf}`;
   m += `< おはよう！今日の天気だよ。${lf}${lf}`;
@@ -47,7 +47,7 @@ function PostToSlack() {
   m += `発表: ${forecast.privider}${lf}`;
   m += `HP: ${forecast.prividerUrl}${lf}`;
 
-  slack.post(m, parentPost.ts);
+  // slack.post(m, parentPost.ts);
 }
 
 /**
@@ -62,9 +62,24 @@ const post = (forecast, slack, dateStr, timeStamp) => {
   const symbols = SlackSymbols.load();
   const lf      = symbols.linefeed;
 
+  const dayOne = new Date();
+  const today               = new Date();
+  const tommorow            = dayOne.setDate(dayOne.getDate() + 1);
+  const theDayAfterTomorrow = dayOne.setDate(dayOne.getDate() + 1);
+  const dates = {
+    today:               new Date(today),
+    tommorow:            new Date(tommorow),
+    theDayAfterTomorrow: new Date(theDayAfterTomorrow),
+  }
+
   let m = '';
   m = `${forecast.generateMessage(dateStr)}`;
   m += lf;
   slack.post(m, timeStamp);
-  slack.postImage(forecast[dateStr].icon.blob, forecast[dateStr].telop, timeStamp);
+  slack.postImage(
+    forecast[dateStr].icon.blob,
+    forecast[dateStr].telop,
+    dates[dateStr],
+    timeStamp
+  );
 }

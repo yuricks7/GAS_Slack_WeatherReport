@@ -30,8 +30,8 @@ class Forecast {
     this.dataTime = data.publicTime;
 
     const provider = data.copyright.provider[0];
-    this.privider    = provider.name;
-    this.prividerUrl = provider.link;
+    this.provider    = provider.name;
+    this.providerUrl = provider.link;
 
     const location = data.location;
     this.city = `${location.city} in ${location.prefecture} of ${location.area}`;
@@ -126,6 +126,8 @@ class Forecast {
     // SVGのURLからPNGのURLを生成
     const weatherCode = svgUrl.match(/(\d+)\.svg$/)[1]; // 画像の番号を抽出（212.svg → 212）
     const pngUrl      = svgUrl.replace(/(\d+)\.svg$/, `${weatherCode}.png`);
+
+console.log(weatherCode);
 
     // PNG を取得して Blob にする
     const pngBlob = UrlFetchApp.fetch(pngUrl).getBlob();
